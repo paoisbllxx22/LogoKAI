@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LogoKAI — Opción 5: Foco Secuencial</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #E8EAED;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 28px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+
+    /* ── Card de login ── */
+    .login-card {
+      width: min(88vw, 440px);
+      background: #FFFFFF;
+      border-radius: 22px;
+      box-shadow:
+        0 2px 4px rgba(0,0,0,0.04),
+        0 12px 40px rgba(0,0,0,0.10),
+        0 40px 80px rgba(0,0,0,0.08);
+      padding: 44px 40px 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── Contenedor del logo ── */
+    .logo-wrap {
+      width: 148px;
+      margin-bottom: 22px;
+    }
+
+    .logo-wrap svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      overflow: visible;
+    }
+
+    /* ─── Easing ── */
+    :root { --focus-ease: cubic-bezier(0.4, 0, 0.2, 1); }
+
+    /*
+      TÉCNICA: Foco Secuencial (Rack Focus)
+      ──────────────────────────────────────────────────────────────
+      Cada pieza del logo aparece primero como una silueta borrosa
+      (filter: blur alto + ligera escala mayor), luego enfoca hacia
+      nitidez una a una de izquierda a derecha — imitando el ajuste
+      manual del plano focal de un lente fotográfico.
+      Un destello de lente cierra la secuencia.
+
+      100% diferente de:
+        Op1 — traslaciones direccionales
+        Op2 — trazo SVG (stroke-dashoffset)
+        Op3 — barrido horizontal clip-path
+        Op4 — expansión radial clip-path por elemento
+    */
+
+    /* ─── Keyframes ─────────────────────── */
+
+    @keyframes blurToFocus {
+      0%   { filter: blur(14px); transform: scale(1.08); opacity: 0; }
+      16%  { opacity: 0.85;      /* visible pero aún muy borroso */ }
+      56%  { filter: blur(3.5px); transform: scale(1.025); opacity: 0.92; }
+      100% { filter: blur(0px);   transform: scale(1);     opacity: 1; }
+    }
+
+    /* Destello de lente tras el reveal completo */
+    @keyframes lensSweep {
+      from { transform: translateX(-110%); opacity: 0.5; }
+      55%  { opacity: 0.5; }
+      to   { transform: translateX(110%);  opacity: 0; }
+    }
+
+    /* Idle — latido sutil en piezas rojas (solo scale, sin filter) */
+    @keyframes heartbeat {
+      0%,  100% { transform: scale(1); }
+      15%        { transform: scale(1.034); }
+      30%        { transform: scale(1); }
+      45%        { transform: scale(1.017); }
+      60%        { transform: scale(1); }
+    }
+
+    /* ─── Asignación por elemento ─── */
+
+    /* heartbeat no declara fill-mode → none por defecto
+       → no aplica fill durante la fase de blurToFocus → sin conflicto en transform */
+
+    #diamond-outer {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation:
+        blurToFocus 1.05s var(--focus-ease)  200ms both,
+        heartbeat   4.4s  ease-in-out        2900ms infinite;
+    }
+    #diamond-inner {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: blurToFocus 1.00s var(--focus-ease) 430ms both;
+    }
+    #bar-left {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation:
+        blurToFocus 1.00s var(--focus-ease)  660ms both,
+        heartbeat   4.4s  ease-in-out        3100ms infinite;
+    }
+    #k-arms {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation:
+        blurToFocus 1.00s var(--focus-ease)  880ms both,
+        heartbeat   4.4s  ease-in-out        3300ms infinite;
+    }
+    #main-body {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: blurToFocus 1.05s var(--focus-ease) 1100ms both;
+    }
+    #bar-right {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: blurToFocus 0.90s var(--focus-ease) 1320ms both;
+    }
+
+    /* Destello de lente al cierre del reveal */
+    #lens-sweep {
+      animation: lensSweep 1.05s cubic-bezier(0.22,1,0.36,1) 2540ms 1 both;
+      pointer-events: none;
+    }
+
+    /* ── Formulario ── */
+    .login-title {
+      font-size: 15px;
+      font-weight: 600;
+      color: #111;
+      letter-spacing: -0.01em;
+      margin-bottom: 22px;
+    }
+    .field { width: 100%; margin-bottom: 14px; }
+    .field label {
+      display: block;
+      font-size: 12px;
+      font-weight: 500;
+      color: #444;
+      margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%;
+      border: 1.5px solid #E2E5E9;
+      border-radius: 9px;
+      padding: 10px 13px;
+      font-size: 13.5px;
+      color: #888;
+      background: #FAFBFC;
+      outline: none;
+      cursor: default;
+    }
+    .forgot {
+      align-self: flex-end;
+      font-size: 12px;
+      color: #E8453C;
+      margin-top: -4px;
+      margin-bottom: 22px;
+    }
+    .btn-login {
+      width: 100%;
+      background: linear-gradient(135deg, #E8453C 0%, #D3171C 100%);
+      color: white;
+      border: none;
+      border-radius: 9px;
+      padding: 13px;
+      font-size: 14.5px;
+      font-weight: 500;
+      cursor: default;
+    }
+
+    /* ── Replay ── */
+    .replay-btn {
+      background: none;
+      border: 1.5px solid rgba(0,0,0,0.14);
+      color: rgba(0,0,0,0.38);
+      padding: 9px 22px;
+      border-radius: 100px;
+      cursor: pointer;
+      font-size: 11.5px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: border-color .2s, color .2s;
+      user-select: none;
+    }
+    .replay-btn:hover  { border-color: #E8453C; color: #E8453C; }
+    .replay-btn:active { transform: scale(0.97); }
+
+    .concept-label {
+      font-size: 11px;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+      color: rgba(0,0,0,0.28);
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+
+  <p class="concept-label">Opción 5 — Foco Secuencial</p>
+
+  <div class="login-card">
+
+    <div class="logo-wrap">
+      <svg id="logo-svg" viewBox="222 196 708 232" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+        <defs>
+          <linearGradient id="lens-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%"   stop-color="white" stop-opacity="0"/>
+            <stop offset="36%"  stop-color="white" stop-opacity="0.05"/>
+            <stop offset="50%"  stop-color="white" stop-opacity="0.15"/>
+            <stop offset="64%"  stop-color="white" stop-opacity="0.05"/>
+            <stop offset="100%" stop-color="white" stop-opacity="0"/>
+          </linearGradient>
+          <clipPath id="logo-clip">
+            <rect x="222" y="196" width="708" height="232"/>
+          </clipPath>
+        </defs>
+
+        <!-- Diamante exterior (rojo) -->
+        <path id="diamond-outer"
+          d="M264.066 205C264.879 205.004 265.895 205.081 266.643 205.419
+             C268.879 206.429 330.774 269.694 331.596 272.201C331.984 273.387
+             331.551 275.48 330.923 276.505C327.918 281.404 310.676 297.461
+             305.292 302.871L282.456 325.85C278.412 329.913 270.231 339.391
+             265.187 340.679C259.83 339.456 248.26 326.411 244 321.862
+             C258.297 306.63 276.779 289.559 291.892 274.343C281.816 262.99
+             268.998 251.648 258.524 240.505C255.077 236.837 246.57 229.2
+             244.368 225.132C245.039 222.359 261.074 207.078 264.066 205Z"
+          fill="#D3171C"/>
+
+        <!-- Diamante interior (oscuro) -->
+        <path id="diamond-inner"
+          d="M343.451 282.66L343.65 282.668C349.44 282.889 361.475 297.109
+             365.607 301.8C361.628 306.554 353.641 314.07 349.04 318.652
+             L318.331 349.363L348.321 379.32C353.659 384.646 360.81 391.394
+             365.681 396.984C363.431 399.997 349.502 413.757 346.275 415.807
+             C343.164 415.917 342.23 415.958 339.929 413.666C320.753 394.565
+             301.488 375.525 282.483 356.258C281.428 355.189 277.73 350.482
+             278.291 349.051C279.126 346.921 281.069 344.261 282.732 342.546
+             C291.916 333.077 301.438 323.889 310.705 314.495C316.761 308.682
+             338.272 285.73 343.451 282.66Z"
+          fill="#1F1E1E"/>
+
+        <!-- Barra vertical izquierda (rojo) -->
+        <path id="bar-left"
+          d="M423.852 221.776L470.76 221.739L470.781 357.619
+             C464.645 363.674 455.431 371.304 448.742 377.139
+             L423.834 399.233L423.852 221.776Z"
+          fill="#D3171C"/>
+
+        <!-- Brazos diagonales de la K (rojo) -->
+        <path id="k-arms"
+          d="M564.148 221.758L635.714 221.753C627.519 229.338 612.889 240.523
+             603.834 247.857L543.498 296.589L538.813 300.225L475.149 300.18
+             C497.86 279.368 521.56 259.55 544.406 238.871C550.295 233.54
+             557.85 226.251 564.148 221.758Z"
+          fill="#D3171C"/>
+
+        <!-- Cuerpo principal / letras A e I (oscuro) -->
+        <path id="main-body"
+          d="M740.159 219.447C741.269 220.168 768.644 259.884 771.694 264.286
+             C801.394 307.18 832.644 348.819 863.094 391.152L815.06 391.207
+             C804.855 377.357 794.544 362.258 784.569 348.136C769.589 327.164
+             754.759 306.082 740.084 284.893C714.574 319.765 689.434 356.026
+             664.349 391.217L629.599 391.219L565.564 391.194L510.694 340.773
+             C499.972 330.993 488.004 320.522 477.741 310.421C496.092 311.175
+             520.255 310.638 538.814 310.394C565.819 335.47 592.98 361.852
+             619.69 387.305C623.565 382.556 629.13 374.331 632.859 369.16
+             L657.685 334.848L740.159 219.447Z"
+          fill="#1F1E1E"/>
+
+        <!-- Barra vertical derecha (oscuro) -->
+        <path id="bar-right"
+          d="M873.974 221.704L911.709 221.749C912.394 277.552 911.839 335.289
+             911.699 391.185L874.019 391.204C873.404 373.433 873.969 352.111
+             873.969 334.114L873.974 221.704Z"
+          fill="#1F1E1E"/>
+
+        <!-- Destello de lente al cierre del reveal -->
+        <g clip-path="url(#logo-clip)">
+          <rect id="lens-sweep"
+                x="222" y="196" width="708" height="232"
+                fill="url(#lens-grad)"/>
+        </g>
+
+      </svg>
+    </div>
+
+    <p class="login-title">Inicio de Sesión</p>
+
+    <div class="field">
+      <label>Usuario</label>
+      <input type="text" value="Ej. roberto.giler@tomebamba.com.ec" readonly tabindex="-1"/>
+    </div>
+
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" value="xxxxxxxxxx" readonly tabindex="-1"/>
+    </div>
+
+    <p class="forgot">Olvidé mi contraseña</p>
+    <button class="btn-login" tabindex="-1">Iniciar Sesión</button>
+
+  </div>
+
+  <button class="replay-btn" onclick="replay()">↺ &nbsp;Reproducir animación</button>
+
+  <script>
+    const LOGO_IDS = [
+      'diamond-outer', 'diamond-inner',
+      'bar-left', 'k-arms', 'main-body', 'bar-right'
+    ];
+
+    function replay() {
+      const all = [...LOGO_IDS, 'lens-sweep'];
+
+      // Detener animaciones
+      all.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.animation = 'none';
+      });
+
+      // Fijar estado inicial para evitar flash durante reflow
+      LOGO_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.opacity   = '0';
+        el.style.filter    = 'blur(14px)';
+        el.style.transform = 'scale(1.08)';
+      });
+
+      // Forzar reflow
+      void document.getElementById('logo-svg').getBoundingClientRect();
+
+      // Restaurar — las animaciones CSS arrancan de cero
+      all.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.style.animation = '';
+        el.style.opacity   = '';
+        el.style.filter    = '';
+        el.style.transform = '';
+      });
+    }
+  </script>
+
+</body>
+</html>
