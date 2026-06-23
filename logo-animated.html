@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LogoKAI — Animated</title>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0d0d0d;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      font-family: system-ui, sans-serif;
+    }
+
+    .stage {
+      width: min(92vw, 820px);
+      filter: drop-shadow(0 32px 80px rgba(0, 0, 0, 0.9))
+              drop-shadow(0 0 120px rgba(211, 23, 28, 0.04));
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+      overflow: visible;
+    }
+
+    .replay-btn {
+      background: none;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: rgba(255, 255, 255, 0.45);
+      padding: 9px 22px;
+      border-radius: 100px;
+      cursor: pointer;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      transition: border-color 0.25s, color 0.25s, background 0.25s;
+      user-select: none;
+    }
+    .replay-btn:hover {
+      border-color: #D3171C;
+      color: #D3171C;
+      background: rgba(211, 23, 28, 0.07);
+    }
+    .replay-btn:active {
+      transform: scale(0.97);
+    }
+
+    /* ─── Custom easing curves ──────────────────────── */
+    :root {
+      --spring:   cubic-bezier(0.16, 1, 0.3, 1);
+      --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+      --snap:     cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* ─── Keyframes ─────────────────────────────────── */
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    /* Marca principal — entrada elástica con rebote */
+    @keyframes scaleInBounce {
+      0%   { opacity: 0; transform: scale(0.15); }
+      55%  { opacity: 1; transform: scale(1.10); }
+      72%  { transform: scale(0.94); }
+      88%  { transform: scale(1.04); }
+      100% { opacity: 1; transform: scale(1); }
+    }
+
+    /* Escala limpia */
+    @keyframes scaleIn {
+      from { opacity: 0; transform: scale(0.4); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    /* Barra izquierda — cae desde arriba */
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-55px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Barra derecha — sube desde abajo */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(55px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Brazos K — desde la izquierda */
+    @keyframes slideLeft {
+      from { opacity: 0; transform: translateX(-65px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* Cuerpo de letras — sube suavemente con escala */
+    @keyframes fadeRise {
+      from { opacity: 0; transform: translateY(18px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0)   scale(1);    }
+    }
+
+    /* Barrido de luz premium — pasa una vez al finalizar la revelación */
+    @keyframes shimmer {
+      from { transform: translateX(-110%); opacity: 0.6; }
+      60%  { opacity: 0.6; }
+      to   { transform: translateX(110%);  opacity: 0; }
+    }
+
+    /* Pulso de resplandor rojo — loop continuo post-revelación */
+    @keyframes redPulse {
+      0%, 100% {
+        filter: drop-shadow(0 0  0px rgba(211, 23, 28, 0));
+      }
+      50% {
+        filter: drop-shadow(0 0  7px rgba(211, 23, 28, 0.65))
+                drop-shadow(0 0 24px rgba(211, 23, 28, 0.28));
+      }
+    }
+
+    /* Respiración sutil del logo completo */
+    @keyframes breathe {
+      0%, 100% { transform: scale(1);     filter: drop-shadow(0 32px 80px rgba(0,0,0,0.9)) drop-shadow(0 0 80px  rgba(211,23,28,0.03)); }
+      50%       { transform: scale(1.003); filter: drop-shadow(0 36px 90px rgba(0,0,0,0.9)) drop-shadow(0 0 120px rgba(211,23,28,0.07)); }
+    }
+
+    /* ─── Asignación de animaciones por elemento ─────── */
+
+    /* Fondo */
+    #bg-outer    { animation: fadeIn 0.4s ease both; }
+    #bg-inner    { animation: fadeIn 0.5s ease 50ms  both; }
+    #border-path { animation: fadeIn 0.5s ease 100ms both; }
+
+    /* 1 — Diamante rojo: lidera la revelación, rebote característico */
+    #diamond-outer {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation:
+        scaleInBounce 0.85s var(--spring)   200ms both,
+        redPulse      4.5s  ease-in-out    2700ms infinite;
+    }
+
+    /* 2 — Detalle interior del diamante: entra suavemente justo después */
+    #diamond-inner {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: scaleIn 0.55s var(--spring) 430ms both;
+    }
+
+    /* 3 — Barra vertical izquierda: cae como un sello */
+    #bar-left {
+      transform-box: fill-box;
+      transform-origin: top center;
+      animation:
+        slideDown 0.55s var(--ease-out)  590ms both,
+        redPulse  4.5s  ease-in-out     2900ms infinite;
+    }
+
+    /* 4 — Brazos diagonales K: barren desde la izquierda */
+    #k-arms {
+      transform-box: fill-box;
+      transform-origin: left center;
+      animation:
+        slideLeft 0.65s var(--ease-out)  740ms both,
+        redPulse  4.5s  ease-in-out     3100ms infinite;
+    }
+
+    /* 5 — Cuerpo principal / formas de letras: emerge desde abajo */
+    #main-body {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: fadeRise 0.85s var(--spring) 890ms both;
+    }
+
+    /* 6 — Barra vertical derecha: sube como cierre */
+    #bar-right {
+      transform-box: fill-box;
+      transform-origin: bottom center;
+      animation: slideUp 0.55s var(--ease-out) 1100ms both;
+    }
+
+    /* Shimmer de luz: barre el logo una vez al terminar la revelación */
+    #shimmer-rect {
+      animation: shimmer 1.1s var(--ease-out) 1800ms 1 both;
+      pointer-events: none;
+    }
+
+    /* Respiración del stage — arranca después del reveal completo */
+    .stage {
+      animation: breathe 7s ease-in-out 3.2s infinite;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="stage">
+    <svg id="logo-svg"
+         width="1188" height="683" viewBox="0 0 1188 683"
+         fill="none" xmlns="http://www.w3.org/2000/svg">
+
+      <defs>
+        <!-- Gradiente para el barrido de luz (shimmer) -->
+        <linearGradient id="shimmer-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%"   stop-color="white" stop-opacity="0"/>
+          <stop offset="40%"  stop-color="white" stop-opacity="0.055"/>
+          <stop offset="50%"  stop-color="white" stop-opacity="0.09"/>
+          <stop offset="60%"  stop-color="white" stop-opacity="0.055"/>
+          <stop offset="100%" stop-color="white" stop-opacity="0"/>
+        </linearGradient>
+
+        <!-- Clip para limitar el shimmer al área del logo -->
+        <clipPath id="logo-clip">
+          <rect width="1188" height="683"/>
+        </clipPath>
+      </defs>
+
+      <!-- ── Capas de fondo ──────────────────────────── -->
+      <rect id="bg-outer" width="1188" height="683" fill="#1E1E1E"/>
+
+      <path id="bg-inner"
+        d="M0 2C0 0.89543 0.895431 0 2 0H1186C1187.1 0 1188 0.895431 1188
+           2V681C1188 682.105 1187.1 683 1186 683H1.99997C0.895397 683 0 682.105
+           0 681V2Z"
+        fill="#444444"/>
+
+      <path id="border-path"
+        d="M2 0V1H1186V0V-1H2V0ZM1188 2H1187V681H1188H1189V2H1188ZM1186
+           683V682H1.99997V683V684H1186V683ZM0 681H1V2H0H-1V681H0ZM1.99997
+           683V682C1.4477 682 1 681.552 1 681H0H-1C-1 682.657 0.343091 684
+           1.99997 684V683ZM1188 681H1187C1187 681.552 1186.55 682 1186
+           682V683V684C1187.66 684 1189 682.657 1189 681H1188ZM1186 0V1C1186.55
+           1 1187 1.44769 1187 2H1188H1189C1189 0.343168 1187.66 -1 1186
+           -1V0ZM2 0V-1C0.343146 -1 -1 0.343145 -1 2H0H1C1 1.44772 1.44771 1 2
+           1V0Z"
+        fill="white" fill-opacity="0.1"/>
+
+      <!-- ── Elementos del logo ───────────────────────── -->
+
+      <!-- Cuerpo principal / formas de letras (oscuro) -->
+      <path id="main-body"
+        d="M740.159 219.447C741.269 220.168 768.644 259.884 771.694 264.286C801.394
+           307.18 832.644 348.819 863.094 391.152L815.06 391.207C804.855 377.357
+           794.544 362.258 784.569 348.136C769.589 327.164 754.759 306.082 740.084
+           284.893C714.574 319.765 689.434 356.026 664.349 391.217L629.599
+           391.219L565.564 391.194L510.694 340.773C499.972 330.993 488.004 320.522
+           477.741 310.421C496.092 311.175 520.255 310.638 538.814 310.394C565.819
+           335.47 592.98 361.852 619.69 387.305C623.565 382.556 629.13 374.331
+           632.859 369.16L657.685 334.848L740.159 219.447Z"
+        fill="#1F1E1E"/>
+
+      <!-- Barra vertical izquierda (rojo) -->
+      <path id="bar-left"
+        d="M423.852 221.776L470.76 221.739L470.781 357.619C464.645 363.674 455.431
+           371.304 448.742 377.139L423.834 399.233L423.852 221.776Z"
+        fill="#D3171C"/>
+
+      <!-- Barra vertical derecha (oscuro) -->
+      <path id="bar-right"
+        d="M873.974 221.704L911.709 221.749C912.394 277.552 911.839 335.289 911.699
+           391.185L874.019 391.204C873.404 373.433 873.969 352.111 873.969
+           334.114L873.974 221.704Z"
+        fill="#1F1E1E"/>
+
+      <!-- Brazos diagonales de la K (rojo) -->
+      <path id="k-arms"
+        d="M564.148 221.758L635.714 221.753C627.519 229.338 612.889 240.523 603.834
+           247.857L543.498 296.589L538.813 300.225L475.149 300.18C497.86 279.368
+           521.56 259.55 544.406 238.871C550.295 233.54 557.85 226.251 564.148
+           221.758Z"
+        fill="#D3171C"/>
+
+      <!-- Diamante exterior — marca principal (rojo) -->
+      <path id="diamond-outer"
+        d="M264.066 205C264.879 205.004 265.895 205.081 266.643 205.419C268.879
+           206.429 330.774 269.694 331.596 272.201C331.984 273.387 331.551 275.48
+           330.923 276.505C327.918 281.404 310.676 297.461 305.292 302.871L282.456
+           325.85C278.412 329.913 270.231 339.391 265.187 340.679C259.83 339.456
+           248.26 326.411 244 321.862C258.297 306.63 276.779 289.559 291.892
+           274.343C281.816 262.99 268.998 251.648 258.524 240.505C255.077 236.837
+           246.57 229.2 244.368 225.132C245.039 222.359 261.074 207.078 264.066
+           205Z"
+        fill="#D3171C"/>
+
+      <!-- Detalle interior del diamante (oscuro) -->
+      <path id="diamond-inner"
+        d="M343.451 282.66L343.65 282.668C349.44 282.889 361.475 297.109 365.607
+           301.8C361.628 306.554 353.641 314.07 349.04 318.652L318.331
+           349.363L348.321 379.32C353.659 384.646 360.81 391.394 365.681
+           396.984C363.431 399.997 349.502 413.757 346.275 415.807C343.164
+           415.917 342.23 415.958 339.929 413.666C320.753 394.565 301.488 375.525
+           282.483 356.258C281.428 355.189 277.73 350.482 278.291 349.051C279.126
+           346.921 281.069 344.261 282.732 342.546C291.916 333.077 301.438 323.889
+           310.705 314.495C316.761 308.682 338.272 285.73 343.451 282.66Z"
+        fill="#1F1E1E"/>
+
+      <!-- Barrido de luz premium (shimmer) -->
+      <g clip-path="url(#logo-clip)">
+        <rect id="shimmer-rect"
+              x="-1188" y="0" width="1188" height="683"
+              fill="url(#shimmer-grad)"/>
+      </g>
+
+    </svg>
+  </div>
+
+  <button class="replay-btn" onclick="replay()">↺ &nbsp;Reproducir animación</button>
+
+  <script>
+    const ANIMATED_IDS = [
+      'bg-outer', 'bg-inner', 'border-path',
+      'diamond-outer', 'diamond-inner',
+      'bar-left', 'k-arms', 'main-body', 'bar-right',
+      'shimmer-rect'
+    ];
+
+    function replay() {
+      // Quitar animaciones para forzar reinicio
+      ANIMATED_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.animation = 'none';
+      });
+
+      // El stage también
+      const stage = document.querySelector('.stage');
+      stage.style.animation = 'none';
+
+      // Forzar reflow — procesa todos los cambios de estilo
+      void document.querySelector('#logo-svg').getBoundingClientRect();
+
+      // Restaurar: las animaciones CSS definidas arrancan de cero
+      ANIMATED_IDS.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.animation = '';
+      });
+      stage.style.animation = '';
+    }
+  </script>
+
+</body>
+</html>
